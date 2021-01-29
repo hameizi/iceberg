@@ -192,6 +192,7 @@ public class FlinkSink {
       if (table == null) {
         tableLoader.open();
         try (TableLoader loader = tableLoader) {
+          //加载表和catalog
           this.table = loader.loadTable();
         } catch (IOException e) {
           throw new UncheckedIOException("Failed to load iceberg table from table loader: " + tableLoader, e);
@@ -199,6 +200,7 @@ public class FlinkSink {
       }
 
       // Find out the equality field id list based on the user-provided equality field column names.
+      //获取用户定义的写入字段
       List<Integer> equalityFieldIds = Lists.newArrayList();
       if (equalityFieldColumns != null && equalityFieldColumns.size() > 0) {
         for (String column : equalityFieldColumns) {
@@ -209,16 +211,18 @@ public class FlinkSink {
         }
       }
 
+      //创建writer
       IcebergStreamWriter<RowData> streamWriter = createStreamWriter(table, tableSchema, equalityFieldIds);
       IcebergFilesCommitter filesCommitter = new IcebergFilesCommitter(tableLoader, overwrite);
 
       this.writeParallelism = writeParallelism == null ? rowDataInput.getParallelism() : writeParallelism;
 
+      //创建写数据的算子
       DataStream<Void> returnStream = rowDataInput
           .transform(ICEBERG_STREAM_WRITER_NAME, TypeInformation.of(WriteResult.class), streamWriter)
-          .setParallelism(writeParallelism)
+          .setParallelism(writeParallelism)//writer的并行度为写入并行度
           .transform(ICEBERG_FILES_COMMITTER_NAME, Types.VOID, filesCommitter)
-          .setParallelism(1)
+          .setParallelism(1)//commiter的并行度为1
           .setMaxParallelism(1);
 
       return returnStream.addSink(new DiscardingSink())

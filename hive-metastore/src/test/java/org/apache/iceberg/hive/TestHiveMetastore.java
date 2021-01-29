@@ -99,10 +99,10 @@ public class TestHiveMetastore {
    */
   public void start(int poolSize) {
     try {
-      this.hiveLocalDir = createTempDirectory("hive", asFileAttribute(fromString("rwxrwxrwx"))).toFile();
-      File derbyLogFile = new File(hiveLocalDir, "derby.log");
-      System.setProperty("derby.stream.error.file", derbyLogFile.getAbsolutePath());
-      setupMetastoreDB("jdbc:derby:" + getDerbyPath() + ";create=true");
+//      this.hiveLocalDir = createTempDirectory("hive", asFileAttribute(fromString("rwxrwxrwx"))).toFile();
+//      File derbyLogFile = new File(hiveLocalDir, "derby.log");
+//      System.setProperty("derby.stream.error.file", derbyLogFile.getAbsolutePath());
+//      setupMetastoreDB("jdbc:derby:" + getDerbyPath() + ";create=true");
 
       TServerSocket socket = new TServerSocket(0);
       int port = socket.getServerSocket().getLocalPort();
@@ -198,8 +198,8 @@ public class TestHiveMetastore {
 
   private HiveConf newHiveConf(int port) {
     HiveConf newHiveConf = new HiveConf(new Configuration(), TestHiveMetastore.class);
-    newHiveConf.set(HiveConf.ConfVars.METASTOREURIS.varname, "thrift://localhost:" + port);
-    newHiveConf.set(HiveConf.ConfVars.METASTOREWAREHOUSE.varname, "file:" + hiveLocalDir.getAbsolutePath());
+    newHiveConf.set(HiveConf.ConfVars.METASTOREURIS.varname, "thrift://192.168.33.204:9083");
+    newHiveConf.set(HiveConf.ConfVars.METASTOREWAREHOUSE.varname, "/data/iceberg/warehouse");
     newHiveConf.set(HiveConf.ConfVars.METASTORE_TRY_DIRECT_SQL.varname, "false");
     newHiveConf.set(HiveConf.ConfVars.METASTORE_DISALLOW_INCOMPATIBLE_COL_TYPE_CHANGES.varname, "false");
     newHiveConf.set("iceberg.hive.client-pool-size", "2");
